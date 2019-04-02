@@ -1,0 +1,335 @@
+1频域低通滤波器：设计低通滤波器包括 butterworth and Gaussian (选择合适的半径，计算功率谱比),平滑测试图像test1和2;分析各自优缺点；
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+def butterworth(image,r0,h):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+            a = ((distance / r0) ** (2 * h))+1
+            b = 1/a
+            array[i, j] = b  # Butterworth 滤波函数
+            # Butterworth 滤波函数
+            #array[i, j] = np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2)))  # Gaussian滤波函数
+    return array
+def Gaussian(image,r0,h):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+            array[i, j] = np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2)))
+            # Gaussian滤波函数
+    return array
+def count(result):
+    m=n=256
+    S1=0
+    S=0
+    for i in range(m):
+        for j in range(n):
+            L = np.abs(result[i,j])**2
+            S=S+L
+    for i in range(m):
+        for j in range(n):
+            L1=np.abs(fshift[i,j])**2
+            S1 = S1+L1
+    print(S/S1)
+dir = ["test1.pgm","test2.tif"]
+for i in dir:
+
+    img = Image.open(i)
+
+    f = np.fft.fft2(img)
+
+    fshift = np.fft.fftshift(f)
+    array1 = butterworth(fshift,5,2)
+    array2 = butterworth(fshift,25,2)
+    array3 = butterworth(fshift,50,2)
+    array4 = butterworth(fshift,75,2)
+
+    result1 = fshift*array1
+    result2= fshift*array2
+    result3 = fshift*array3
+    result4 = fshift*array4
+    img_d1 = np.abs(np.fft.ifft2(np.fft.ifftshift(result1)))
+    img_d2 = np.abs(np.fft.ifft2(np.fft.ifftshift(result2)))
+    img_d3 = np.abs(np.fft.ifft2(np.fft.ifftshift(result3)))
+    img_d4 = np.abs(np.fft.ifft2(np.fft.ifftshift(result4)))
+    plt.subplot(221), plt.title('5'),plt.imshow(img_d1, 'gray')
+    plt.subplot(222), plt.title('25'),plt.imshow(img_d2, 'gray')
+    plt.subplot(223), plt.title('50'),plt.imshow(img_d3, 'gray')
+    plt.subplot(224), plt.title('75'),plt.imshow(img_d4, 'gray')
+    plt.show()
+    count(result1)
+    count(result2)
+    count(result3)
+    count(result4)
+for i in dir:
+    img = Image.open(i)
+
+    f = np.fft.fft2(img)
+
+    fshift = np.fft.fftshift(f)
+    array1 = Gaussian(fshift, 5, 2)
+    array2 = Gaussian(fshift, 25, 2)
+    array3 = Gaussian(fshift, 50, 2)
+    array4 = Gaussian(fshift, 75, 2)
+
+    result1 = fshift * array1
+    result2 = fshift * array2
+    result3 = fshift * array3
+    result4 = fshift * array4
+    img_d1 = np.abs(np.fft.ifft2(np.fft.ifftshift(result1)))
+    img_d2 = np.abs(np.fft.ifft2(np.fft.ifftshift(result2)))
+    img_d3 = np.abs(np.fft.ifft2(np.fft.ifftshift(result3)))
+    img_d4 = np.abs(np.fft.ifft2(np.fft.ifftshift(result4)))
+    plt.subplot(221), plt.title('5'), plt.imshow(img_d1, 'gray')
+    plt.subplot(222), plt.title('25'), plt.imshow(img_d2, 'gray')
+    plt.subplot(223), plt.title('50'), plt.imshow(img_d3, 'gray')
+    plt.subplot(224), plt.title('75'), plt.imshow(img_d4, 'gray')
+    plt.show()
+    count(result1)
+    count(result2)
+    count(result3)
+    count(result4)
+
+
+2频域高通滤波器：设计高通滤波器包括butterworth and Gaussian，在频域增强边缘。选择半径和计算功率谱比，测试图像test3,4：分析各自优缺点；
+from PIL import Image
+import numpy as np
+import matplotlib.pyplot as plt
+
+def butterworth(image,r0,h):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+
+            a = ((distance / r0) ** (2 * h))+1
+            b = 1/a
+            array[i, j] = 1-b  # Butterworth 滤波函数
+            # Butterworth 滤波函数
+            #array[i, j] = np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2)))  # Gaussian滤波函数
+    return array
+def Gaussian(image,r0):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+            array[i, j] = 1-(np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2))))
+            # Gaussian滤波函数
+
+    return array
+def count(img,result):
+    [m,n] = np.shape(img)
+    S1=0
+    S=0
+    for i in range(m):
+        for j in range(n):
+            L = np.abs(result[i,j])**2
+            S=S+L
+    for i in range(m):
+        for j in range(n):
+            L1=np.abs(fshift[i,j])**2
+            S1 = S1+L1
+    print(S/S1)
+dir = ["test3_corrupt.pgm","test4 copy.bmp"]
+for i in dir:
+
+    img = Image.open(i)
+
+    f = np.fft.fft2(img)
+
+    fshift = np.fft.fftshift(f)
+    print(fshift)
+    array1 = butterworth(img,5,2)
+    array2 = butterworth(img,25,2)
+    array3 = butterworth(img,50,2)
+    array4 = butterworth(img,75,2)
+
+    result1 = fshift*array1
+    result2= fshift*array2
+    result3 = fshift*array3
+    result4 = fshift*array4
+    img_d1 = np.abs(np.fft.ifft2(np.fft.ifftshift(result1)))
+    img_d2 = np.abs(np.fft.ifft2(np.fft.ifftshift(result2)))
+    img_d3 = np.abs(np.fft.ifft2(np.fft.ifftshift(result3)))
+    img_d4 = np.abs(np.fft.ifft2(np.fft.ifftshift(result4)))
+    plt.subplot(221), plt.title('5'),plt.imshow(img_d1, 'gray')
+    plt.subplot(222), plt.title('25'),plt.imshow(img_d2, 'gray')
+    plt.subplot(223), plt.title('50'),plt.imshow(img_d3, 'gray')
+    plt.subplot(224), plt.title('75'),plt.imshow(img_d4, 'gray')
+    plt.show()
+    count(img,result1)
+    count(img,result2)
+    count(img,result3)
+    count(img,result4)
+
+
+for i in dir:
+    img = Image.open(i)
+
+    f = np.fft.fft2(img)
+
+    fshift = np.fft.fftshift(f)
+    array1 = Gaussian(img, 5)
+    array2 = Gaussian(img, 25)
+    array3 = Gaussian(img, 50)
+    array4 = Gaussian(img, 75)
+
+    result1 = fshift * array1
+    result2 = fshift * array2
+    result3 = fshift * array3
+    result4 = fshift * array4
+    img_d1 = np.abs(np.fft.ifft2(np.fft.ifftshift(result1)))
+    img_d2 = np.abs(np.fft.ifft2(np.fft.ifftshift(result2)))
+    img_d3 = np.abs(np.fft.ifft2(np.fft.ifftshift(result3)))
+    img_d4 = np.abs(np.fft.ifft2(np.fft.ifftshift(result4)))
+    plt.subplot(221), plt.title('5'), plt.imshow(img_d1, 'gray')
+    plt.subplot(222), plt.title('25'), plt.imshow(img_d2, 'gray')
+    plt.subplot(223), plt.title('50'), plt.imshow(img_d3, 'gray')
+    plt.subplot(224), plt.title('75'), plt.imshow(img_d4, 'gray')
+    plt.show()
+    count(img, result1)
+    count(img,result2)
+    count(img,result3)
+    count(img,result4)
+
+3.其他高通滤波器：拉普拉斯和Unmask，对测试图像test3,4滤波；分析各自优缺点；(unmask)
+from PIL import Image
+import numpy as np
+import math
+import cv2
+
+def normalize(mat):
+    a = np.max(mat)
+    b = np.min(mat)
+    c = mat - b
+    new = 255 * c / (a - b)
+    return new.astype(np.uint8)
+
+def Laplacian(img2):
+    img1 = np.array(img2)
+    [m,n] = np.shape(img1)
+    array = np.zeros([m, n])
+    for i in range(m):
+        for j in range(n):
+            distance = (i - m / 2) ** 2 + (j - n / 2) ** 2
+            array[i,j]= 1+4 * math.pi*math.pi* distance
+    return array
+def Gaussian(image,r0):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+            array[i, j] = 1-(np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2))))
+            # Gaussian滤波函数
+    return array
+def unmask( k,h):
+    return 1+k*h
+def butterworth(image,r0,h):
+    img = np.array(image)
+    [m,n] = np.shape(img)
+    array = np.zeros([m,n])
+    for i in range(0,m-1):
+        for j in range(0,n-1):
+            distance = np.sqrt((i-m/2)**2+(j-n/2)**2)
+
+            a = ((distance / r0) ** (2 * h))+1
+            b = 1/a
+            array[i, j] = 1-b  # Butterworth 滤波函数
+            # Butterworth 滤波函数
+            #array[i, j] = np.e ** (-1 * (distance ** 2 / (2 * r0 ** 2)))  # Gaussian滤波函数
+    return array
+img = cv2.imread("./test3_corrupt.pgm", 0)
+img_array = np.array(img)
+[m, n] = np.shape(img_array)
+h1=Gaussian(img,25)
+h2=butterworth(img,25,2)
+f = np.fft.fft2(img)
+fshift = np.fft.fftshift(f)
+a1 = fshift * h1
+a2 = fshift*h2
+g = np.zeros([m, n])
+g3=np.zeros([m,n])
+img_d1 = np.abs(np.fft.ifft2(np.fft.ifftshift(a1)))
+img_d2 = np.abs(np.fft.ifft2(np.fft.ifftshift(a2)))
+for i in range(m):
+    for j in range(n):
+        g[i,j] = -img_d1[i,j]
+for i in range(m):
+    for j in range(n):
+        g3[i,j] = -img_d2[i,j]
+g1 = normalize(g)
+g5 = normalize(g3)
+g4=np.zeros([m,n])
+g2 = np.zeros([m,n])
+for i in range(m):
+    for j in range(n):
+        g2[i,j] =255- g1[i,j]
+for i in range(m):
+    for j in range(n):
+        g4[i,j] =255- g5[i,j]
+print(g4)
+result= Image.fromarray(g2)
+result1= Image.fromarray(g4)
+result1.show()
+result.show()
+
+3.其他高通滤波器：拉普拉斯和Unmask，对测试图像test3,4滤波；分析各自优缺点；(unmask)
+from PIL import Image
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+import cv2
+
+def normalize(mat):
+    a = np.max(mat)
+    b = np.min(mat)
+    c = mat - b
+    new = 255 * c / (a - b)
+    return new.astype(np.uint8)
+
+def Laplacian(img2):
+    img1 = np.array(img2)
+    [m,n] = np.shape(img1)
+    array = np.zeros([m, n])
+    for i in range(m):
+        for j in range(n):
+            distance = (i - m / 2) ** 2 + (j - n / 2) ** 2
+            array[i,j]= 1+4 * math.pi*math.pi* distance
+    return array
+dir=['test3_corrupt.pgm','test4.tif']
+for i in dir:
+    img = cv2.imread(i, 0)
+    img_array = np.array(img)
+    [m,n] = np.shape(img_array)
+    array = Laplacian(img)
+    f = np.fft.fft2(img)
+    fshift = np.fft.fftshift(f)
+    a = fshift*array
+    g = np.zeros([m,n])
+    img_d = np.abs(np.fft.ifft2(np.fft.ifftshift(a)))
+    #print(img_d)
+
+    for i in range(m):
+        for j in range(n):
+            g[i,j] = -img_d[i,j]
+    g1 = normalize(g)
+    g2 = np.zeros([m,n])
+    for i in range(m):
+        for j in range(n):
+            g2[i,j] =255- g1[i,j]
+    #print(g2)
+    result= Image.fromarray(g2)
+    result.show()
